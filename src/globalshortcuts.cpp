@@ -34,11 +34,11 @@ GlobalShortcut::GlobalShortcut(Shortcut &&sc, QAction *action)
         {SwipeDirection::Left, SwipeGesture::Direction::Left},
         {SwipeDirection::Right, SwipeGesture::Direction::Right},
     };
-    if (auto swipeGesture = std::get_if<FourFingerSwipeShortcut>(&sc)) {
+    if (auto swipeGesture = std::get_if<SwipeShortcut>(&sc)) {
         m_gesture.reset(new SwipeGesture);
         m_gesture->setDirection(dirs[swipeGesture->swipeDirection]);
-        m_gesture->setMaximumFingerCount(4);
-        m_gesture->setMinimumFingerCount(4);
+        m_gesture->setMaximumFingerCount(swipeGesture->fingerCount);
+        m_gesture->setMinimumFingerCount(swipeGesture->fingerCount);
         QObject::connect(m_gesture.get(), &SwipeGesture::triggered, m_action, &QAction::trigger, Qt::QueuedConnection);
     } else if (auto rtSwipeGesture = std::get_if<FourFingerRealtimeFeedbackSwipeShortcut>(&sc)) {
         m_gesture.reset(new SwipeGesture);
@@ -80,7 +80,8 @@ SwipeGesture *GlobalShortcut::swipeGesture() const
 
 GlobalShortcutsManager::GlobalShortcutsManager(QObject *parent)
     : QObject(parent)
-    , m_gestureRecognizer(new GestureRecognizer(this))
+    , m_touchpadGestureRecognizer(new GestureRecognizer(this))
+    , m_touchscreenGestureRecognizer(new GestureRecognizer(this))
 {
 }
 
@@ -123,8 +124,14 @@ bool GlobalShortcutsManager::addIfNotExists(GlobalShortcut sc)
         }
     }
 
-    if (std::holds_alternative<FourFingerSwipeShortcut>(sc.shortcut()) || std::holds_alternative<FourFingerRealtimeFeedbackSwipeShortcut>(sc.shortcut())) {
-        m_gestureRecognizer->registerGesture(sc.swipeGesture());
+    if (std::holds_alternative<SwipeShortcut>(sc.shortcut())) {
+        if (std::get<SwipeShortcut>(sc.shortcut()).device == DeviceType::Touchpad) {
+            m_touchpadGestureRecognizer->registerGesture(sc.swipeGesture());
+        } else {
+            m_touchscreenGestureRecognizer->registerGesture(sc.swipeGesture());
+        }
+    } else if (std::holds_alternative<FourFingerRealtimeFeedbackSwipeShortcut>(sc.shortcut())) {
+        m_touchpadGestureRecognizer->registerGesture(sc.swipeGesture());
     }
     connect(sc.action(), &QAction::destroyed, this, &GlobalShortcutsManager::objectDeleted);
     m_shortcuts.push_back(std::move(sc));
@@ -143,7 +150,12 @@ void GlobalShortcutsManager::registerAxisShortcut(QAction *action, Qt::KeyboardM
 
 void GlobalShortcutsManager::registerTouchpadSwipe(QAction *action, SwipeDirection direction)
 {
-    addIfNotExists(GlobalShortcut(FourFingerSwipeShortcut{direction}, action));
+    addIfNotExists(GlobalShortcut(SwipeShortcut{direction, 4, DeviceType::Touchpad}, action));
+}
+
+void GlobalShortcutsManager::registerTouchscreenSwipe(QAction *action, SwipeDirection direction)
+{
+    addIfNotExists(GlobalShortcut(SwipeShortcut{direction, 3, DeviceType::Touchscreen}, action));
 }
 
 void GlobalShortcutsManager::registerRealtimeTouchpadSwipe(QAction *action, std::function<void (qreal)> progressCallback, SwipeDirection direction)
@@ -212,24 +224,40 @@ bool GlobalShortcutsManager::processAxis(Qt::KeyboardModifiers mods, PointerAxis
     return match<PointerAxisShortcut>(m_shortcuts, mods, axis);
 }
 
-void GlobalShortcutsManager::processSwipeStart(uint fingerCount)
+void GlobalShortcutsManager::processSwipeStart(uint fingerCount, DeviceType device)
 {
-    m_gestureRecognizer->startSwipeGesture(fingerCount);
+    if (device == DeviceType::Touchpad) {
+        m_touchpadGestureRecognizer->startSwipeGesture(fingerCount);
+    } else {
+        m_touchscreenGestureRecognizer->startSwipeGesture(fingerCount);
+    }
 }
 
-void GlobalShortcutsManager::processSwipeUpdate(const QSizeF &delta)
+void GlobalShortcutsManager::processSwipeUpdate(const QSizeF &delta, DeviceType device)
 {
-    m_gestureRecognizer->updateSwipeGesture(delta);
+    if (device == DeviceType::Touchpad) {
+        m_touchpadGestureRecognizer->updateSwipeGesture(delta);
+    } else {
+        m_touchscreenGestureRecognizer->updateSwipeGesture(delta);
+    }
 }
 
-void GlobalShortcutsManager::processSwipeCancel()
+void GlobalShortcutsManager::processSwipeCancel(DeviceType device)
 {
-    m_gestureRecognizer->cancelSwipeGesture();
+    if (device == DeviceType::Touchpad) {
+        m_touchpadGestureRecognizer->cancelSwipeGesture();
+    } else {
+        m_touchscreenGestureRecognizer->cancelSwipeGesture();
+    }
 }
 
-void GlobalShortcutsManager::processSwipeEnd()
+void GlobalShortcutsManager::processSwipeEnd(DeviceType device)
 {
-    m_gestureRecognizer->endSwipeGesture();
+    if (device == DeviceType::Touchpad) {
+        m_touchpadGestureRecognizer->endSwipeGesture();
+    } else {
+        m_touchscreenGestureRecognizer->endSwipeGesture();
+    }
     // TODO: cancel on Wayland Seat if one triggered
 }
 

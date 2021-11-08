@@ -135,6 +135,7 @@ public:
     void registerPointerShortcut(Qt::KeyboardModifiers modifiers, Qt::MouseButton pointerButtons, QAction *action);
     void registerAxisShortcut(Qt::KeyboardModifiers modifiers, PointerAxisDirection axis, QAction *action);
     void registerTouchpadSwipeShortcut(SwipeDirection direction, QAction *action);
+    void registerTouchscreenSwipeShortcut(SwipeDirection direction, QAction *action);
     void registerRealtimeTouchpadSwipeShortcut(SwipeDirection direction, QAction *onUp, std::function<void(qreal)> progressCallback);
     void registerGlobalAccel(KGlobalAccelInterface *interface);
 
@@ -379,6 +380,8 @@ public:
     virtual bool touchDown(qint32 id, const QPointF &pos, quint32 time);
     virtual bool touchMotion(qint32 id, const QPointF &pos, quint32 time);
     virtual bool touchUp(qint32 id, quint32 time);
+    virtual bool touchCancel();
+    virtual bool touchFrame();
 
     virtual bool pinchGestureBegin(int fingerCount, quint32 time);
     virtual bool pinchGestureUpdate(qreal scale, qreal angleDelta, const QSizeF &delta, quint32 time);

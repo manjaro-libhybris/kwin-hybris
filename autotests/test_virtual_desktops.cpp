@@ -37,6 +37,8 @@ void InputRedirection::registerTouchpadSwipeShortcut(SwipeDirection, QAction*)
 {
 }
 
+void InputRedirection::registerTouchscreenSwipeShortcut(SwipeDirection, QAction*) {}
+
 }
 
 Q_DECLARE_METATYPE(Qt::Orientation)

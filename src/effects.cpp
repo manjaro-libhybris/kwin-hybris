@@ -760,6 +760,11 @@ void EffectsHandlerImpl::registerTouchpadSwipeShortcut(SwipeDirection direction,
     input()->registerTouchpadSwipeShortcut(direction, action);
 }
 
+void EffectsHandlerImpl::registerTouchscreenSwipeShortcut(SwipeDirection direction, QAction *action)
+{
+    input()->registerTouchscreenSwipeShortcut(direction, action);
+}
+
 void* EffectsHandlerImpl::getProxy(QString name)
 {
     for (QVector< EffectPair >::const_iterator it = loaded_effects.constBegin(); it != loaded_effects.constEnd(); ++it)

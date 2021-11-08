@@ -886,6 +886,15 @@ public:
      */
     virtual void registerTouchpadSwipeShortcut(SwipeDirection direction, QAction *action) = 0;
 
+    /**
+     * @brief Registers a global touchscreen swipe gesture shortcut with the provided @p action.
+     *
+     * @param direction The direction for the swipe
+     * @param action The action which gets triggered when the gesture triggers
+     * @since 5.24
+     */
+    virtual void registerTouchscreenSwipeShortcut(SwipeDirection direction, QAction *action) = 0;
+
     virtual void registerRealtimeTouchpadSwipeShortcut(SwipeDirection dir, QAction* onUp, std::function<void(qreal)> progressCallback) = 0;
 
     /**

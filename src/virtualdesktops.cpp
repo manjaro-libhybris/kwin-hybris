@@ -801,8 +801,10 @@ void VirtualDesktopManager::initShortcuts()
 
     QAction *nextAction = addAction(QStringLiteral("Switch to Next Desktop"), i18n("Switch to Next Desktop"), &VirtualDesktopManager::slotNext);
     input()->registerTouchpadSwipeShortcut(SwipeDirection::Right, nextAction);
+    input()->registerTouchscreenSwipeShortcut(SwipeDirection::Left, nextAction);
     QAction *previousAction = addAction(QStringLiteral("Switch to Previous Desktop"), i18n("Switch to Previous Desktop"), &VirtualDesktopManager::slotPrevious);
     input()->registerTouchpadSwipeShortcut(SwipeDirection::Left, previousAction);
+    input()->registerTouchscreenSwipeShortcut(SwipeDirection::Right, previousAction);
     QAction *slotRightAction = addAction(QStringLiteral("Switch One Desktop to the Right"), i18n("Switch One Desktop to the Right"), &VirtualDesktopManager::slotRight);
     KGlobalAccel::setGlobalShortcut(slotRightAction, QKeySequence(Qt::CTRL + Qt::META + Qt::Key_Right));
     QAction *slotLeftAction = addAction(QStringLiteral("Switch One Desktop to the Left"), i18n("Switch One Desktop to the Left"), &VirtualDesktopManager::slotLeft);

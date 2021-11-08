@@ -24,6 +24,11 @@ class GlobalShortcut;
 class SwipeGesture;
 class GestureRecognizer;
 
+enum class DeviceType {
+    Touchpad,
+    Touchscreen
+};
+
 /**
  * @brief Manager for the global shortcut system inside KWin.
  *
@@ -59,6 +64,7 @@ public:
     void registerAxisShortcut(QAction *action, Qt::KeyboardModifiers modifiers, PointerAxisDirection axis);
 
     void registerTouchpadSwipe(QAction *action, SwipeDirection direction);
+    void registerTouchscreenSwipe(QAction *action, SwipeDirection direction);
 
     void registerRealtimeTouchpadSwipe(QAction *onUp, std::function<void(qreal)> progressCallback, SwipeDirection direction);
 
@@ -88,10 +94,10 @@ public:
      */
     bool processAxis(Qt::KeyboardModifiers modifiers, PointerAxisDirection axis);
 
-    void processSwipeStart(uint fingerCount);
-    void processSwipeUpdate(const QSizeF &delta);
-    void processSwipeCancel();
-    void processSwipeEnd();
+    void processSwipeStart(uint fingerCount, DeviceType device);
+    void processSwipeUpdate(const QSizeF &delta, DeviceType device);
+    void processSwipeCancel(DeviceType device);
+    void processSwipeEnd(DeviceType device);
 
     void setKGlobalAccelInterface(KGlobalAccelInterface *interface)
     {
@@ -106,7 +112,8 @@ private:
 
     KGlobalAccelD *m_kglobalAccel = nullptr;
     KGlobalAccelInterface *m_kglobalAccelInterface = nullptr;
-    GestureRecognizer *m_gestureRecognizer;
+    GestureRecognizer *m_touchpadGestureRecognizer;
+    GestureRecognizer *m_touchscreenGestureRecognizer;
 };
 
 struct KeyboardShortcut
@@ -135,12 +142,16 @@ struct PointerAxisShortcut
         return axisModifiers == rhs.axisModifiers && axisDirection == rhs.axisDirection;
     }
 };
-struct FourFingerSwipeShortcut
+struct SwipeShortcut
 {
     SwipeDirection swipeDirection;
-    bool operator==(const FourFingerSwipeShortcut &rhs) const
+    int fingerCount;
+    DeviceType device;
+    bool operator==(const SwipeShortcut &rhs) const
     {
-        return swipeDirection == rhs.swipeDirection;
+        return swipeDirection == rhs.swipeDirection
+            && fingerCount == rhs.fingerCount
+            && device == rhs.device;
     }
 };
 struct FourFingerRealtimeFeedbackSwipeShortcut
@@ -155,7 +166,7 @@ struct FourFingerRealtimeFeedbackSwipeShortcut
     }
 };
 
-using Shortcut = std::variant<KeyboardShortcut, PointerButtonShortcut, PointerAxisShortcut, FourFingerSwipeShortcut, FourFingerRealtimeFeedbackSwipeShortcut>;
+using Shortcut = std::variant<KeyboardShortcut, PointerButtonShortcut, PointerAxisShortcut, SwipeShortcut, FourFingerRealtimeFeedbackSwipeShortcut>;
 
 class GlobalShortcut
 {

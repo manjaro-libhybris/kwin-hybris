@@ -112,6 +112,7 @@ public:
     void registerAxisShortcut(Qt::KeyboardModifiers modifiers, PointerAxisDirection axis, QAction *action) override;
     void registerRealtimeTouchpadSwipeShortcut(SwipeDirection dir, QAction* onUp, std::function<void(qreal)> progressCallback) override;
     void registerTouchpadSwipeShortcut(SwipeDirection direction, QAction *action) override;
+    void registerTouchscreenSwipeShortcut(SwipeDirection direction, QAction *action) override;
     void* getProxy(QString name) override;
     void startMousePolling() override;
     void stopMousePolling() override;

@@ -139,16 +139,18 @@ int GestureRecognizer::startSwipeGesture(uint fingerCount, const QPointF &startP
     return count;
 }
 
+#define MIN_DELTA 5
+
 void GestureRecognizer::updateSwipeGesture(const QSizeF &delta)
 {
     m_swipeUpdates << delta;
     m_currentDelta += delta;
     // with high resolution touch(pad) gestures can be cancelled without intention
     // -> don't cancel movements if their accumulated values are too small but also still update the gesture for animations
-    if (std::abs(m_currentDelta.width()) > 1 || std::abs(m_currentDelta.height()) > 1) {
+    if (std::abs(m_currentDelta.width()) > MIN_DELTA || std::abs(m_currentDelta.height()) > MIN_DELTA) {
         m_lastDelta = m_currentDelta;
         m_currentDelta = QSizeF(0, 0);
-    } else if (std::abs(m_lastDelta.width()) < 1 && std::abs(m_lastDelta.height()) < 1) {
+    } else if (std::abs(m_lastDelta.width()) < MIN_DELTA && std::abs(m_lastDelta.height()) < MIN_DELTA) {
         // no direction yet
         return;
     }
