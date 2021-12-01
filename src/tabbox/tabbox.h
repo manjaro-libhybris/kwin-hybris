@@ -62,6 +62,7 @@ public:
     void activateAndClose() override;
     void highlightWindows(TabBoxClient *window = nullptr, QWindow *controller = nullptr) override;
     bool noModifierGrab() const override;
+    void dismissPopups();
 
 private:
     bool checkDesktop(TabBoxClient* client, int desktop) const;
@@ -72,6 +73,7 @@ private:
 
     TabBox* m_tabBox;
     DesktopChainManager* m_desktopFocusChain;
+    QVector<AbstractClient*> m_popups;
 };
 
 class TabBoxClientImpl : public TabBoxClient

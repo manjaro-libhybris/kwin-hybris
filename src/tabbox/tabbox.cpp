@@ -26,6 +26,7 @@
 #include "composite.h"
 #include "x11client.h"
 #include "effects.h"
+#include "internal_client.h"
 #include "input.h"
 #include "keyboard_input.h"
 #include "pointer_input.h"
@@ -74,6 +75,18 @@ TabBoxHandlerImpl::TabBoxHandlerImpl(TabBox* tabBox)
         connect(Activities::self(), &Activities::currentChanged, m_desktopFocusChain, &DesktopChainManager::useChain);
     }
 #endif
+    const auto handleClientAdded = [this](AbstractClient *c) {
+        if (c->isPopupWindow()) {
+            m_popups << c;
+        }
+    };
+    connect(workspace(), &Workspace::clientAdded, this, handleClientAdded);
+    connect(workspace(), &Workspace::internalClientAdded, this, handleClientAdded);
+    const auto handleClientRemoved = [this](AbstractClient *c) {
+        m_popups.removeOne(c);
+    };
+    connect(workspace(), &Workspace::clientRemoved, this, handleClientRemoved);
+    connect(workspace(), &Workspace::internalClientRemoved, this, handleClientRemoved);
 }
 
 TabBoxHandlerImpl::~TabBoxHandlerImpl()
@@ -354,6 +367,13 @@ void TabBoxHandlerImpl::highlightWindows(TabBoxClient *window, QWindow *controll
 bool TabBoxHandlerImpl::noModifierGrab() const
 {
     return m_tabBox->noModifierGrab();
+}
+
+void TabBoxHandlerImpl::dismissPopups()
+{
+    while (!m_popups.isEmpty()) {
+        m_popups.takeLast()->popupDone();
+    }
 }
 
 /*********************************************************
@@ -1020,10 +1040,7 @@ void TabBox::navigatingThroughWindows(bool forward, const QKeySequence &shortcut
         // CDE style raise / lower
         CDEWalkThroughWindows(forward);
     } else {
-        workspace()->forEachAbstractClient([](Toplevel *toplevel) {
-            if (toplevel->isPopupWindow())
-                toplevel->popupDone();
-        });
+        m_tabBox->dismissPopups();
         if (areModKeysDepressed(shortcut)) {
             if (startKDEWalkThroughWindows(mode))
                 KDEWalkThroughWindows(forward);
