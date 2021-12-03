@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Category": "Window Management",
+        "Description": "Arranges virtual desktops in a grid",
+        "EnabledByDefault": false,
+        "Id": "grid",
+        "License": "GPL",
+        "Name": "Grid"
+    },
+    "X-KDE-ConfigModule": "kwin_grid_config"
+}
