@@ -11,4 +11,4 @@ install(FILES videowall/metadata.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR
 add_kwin_script(videowall)
 add_kwin_script(synchronizeskipswitcher)
 add_kwin_script(desktopchangeosd)
-add_kwin_script(minimizeall)
+add_subdirectory(minimizeall)
