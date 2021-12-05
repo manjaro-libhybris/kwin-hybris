@@ -655,7 +655,7 @@ void KWin::Scripting::init()
     qmlRegisterSingletonType<QtScriptWorkspaceWrapper>("org.kde.kwin", 3, 0, "Workspace", [](QQmlEngine *qmlEngine, QJSEngine *jsEngine) {
         Q_UNUSED(qmlEngine)
         Q_UNUSED(jsEngine)
-        return new QtScriptWorkspaceWrapper();
+        return new DeclarativeScriptWorkspaceWrapper();
     });
 
     qmlRegisterType<KWin::AbstractClient>();
