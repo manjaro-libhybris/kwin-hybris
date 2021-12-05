@@ -7,6 +7,7 @@
 
 import QtQuick 2.12
 import org.kde.kwin 3.0 as KWinComponents
+import org.kde.kwin.private.minimizeall 1.0
 
 QtObject {
     id: script
@@ -20,6 +21,10 @@ QtObject {
             edge: modelData
             onActivated: script.toggle();
         }
+    }
+
+    property var dbusService: MinimizeAllDbusService {
+        onToggled: script.toggle();
     }
 
     function toggle() {

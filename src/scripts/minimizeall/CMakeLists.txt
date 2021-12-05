@@ -1,4 +1,5 @@
 kpackage_install_package(package minimizeall scripts kwin)
+add_subdirectory(plugin)
 
 # Copy the script to the build directory so one can run tests without prior
 # make install. FIXME: use add_custom_command.
