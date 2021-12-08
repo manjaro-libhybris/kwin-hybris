@@ -3749,6 +3749,10 @@ void AbstractClient::updateDecoration(bool check_workspace_pos, bool force)
     qCWarning(KWIN_CORE, "%s doesn't support server side decorations", metaObject()->className());
 }
 
+void AbstractClient::invalidateDecoration()
+{
+}
+
 bool AbstractClient::noBorder() const
 {
     return true;
