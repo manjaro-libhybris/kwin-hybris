@@ -1228,6 +1228,10 @@ protected:
     void startShadeHoverTimer();
     void startShadeUnhoverTimer();
 
+    QPoint boundsPosition() const;
+    QSize explicitBoundsSize() const;
+    QSize effectiveBoundsSize() const;
+
     // The geometry that the client should be restored when the virtual keyboard closes
     QRect keyboardGeometryRestore() const;
     void setKeyboardGeometryRestore(const QRect &geom);
@@ -1292,7 +1296,8 @@ private:
     int m_blockGeometryUpdates = 0; // > 0 = New geometry is remembered, but not actually set
     MoveResizeMode m_pendingMoveResizeMode = MoveResizeMode::None;
     friend class GeometryUpdatesBlocker;
-    QRect m_moveResizeGeometry;
+    QPoint m_boundsPosition;
+    QSize m_boundsSize;
     QRect m_keyboardGeometryRestore;
     QRect m_maximizeGeometryRestore;
     QRect m_fullscreenGeometryRestore;

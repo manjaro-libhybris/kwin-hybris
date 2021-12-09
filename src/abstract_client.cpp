@@ -3001,32 +3001,55 @@ QRect AbstractClient::clientRectToFrameRect(const QRect &rect) const
     return QRect(position, size);
 }
 
+QPoint AbstractClient::boundsPosition() const
+{
+    return m_boundsPosition;
+}
+
+QSize AbstractClient::explicitBoundsSize() const
+{
+    return m_boundsSize;
+}
+
+QSize AbstractClient::effectiveBoundsSize() const
+{
+    QSize bounds = m_boundsSize;
+    if (bounds.width() == -1) {
+        bounds.setWidth(width());
+    }
+    if (bounds.height() == -1) {
+        bounds.setHeight(height());
+    }
+    return bounds;
+}
+
 QRect AbstractClient::moveResizeGeometry() const
 {
-    return m_moveResizeGeometry;
+    return QRect(boundsPosition(), effectiveBoundsSize());
 }
 
 void AbstractClient::setMoveResizeGeometry(const QRect &geo)
 {
-    m_moveResizeGeometry = geo;
+    m_boundsPosition = geo.topLeft();
+    m_boundsSize = geo.isValid() ? geo.size() : QSize();
 }
 
 void AbstractClient::move(const QPoint &point)
 {
-    m_moveResizeGeometry.moveTopLeft(point);
-    moveResizeInternal(m_moveResizeGeometry, MoveResizeMode::Move);
+    m_boundsPosition = point;
+    moveResizeInternal(moveResizeGeometry(), MoveResizeMode::Move);
 }
 
 void AbstractClient::resize(const QSize &size)
 {
-    m_moveResizeGeometry.setSize(size);
-    moveResizeInternal(m_moveResizeGeometry, MoveResizeMode::Resize);
+    m_boundsSize = size;
+    moveResizeInternal(moveResizeGeometry(), MoveResizeMode::Resize);
 }
 
 void AbstractClient::moveResize(const QRect &rect)
 {
-    m_moveResizeGeometry = rect;
-    moveResizeInternal(m_moveResizeGeometry, MoveResizeMode::MoveResize);
+    setMoveResizeGeometry(rect);
+    moveResizeInternal(moveResizeGeometry(), MoveResizeMode::MoveResize);
 }
 
 void AbstractClient::setElectricBorderMode(QuickTileMode mode)

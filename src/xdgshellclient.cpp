@@ -180,25 +180,6 @@ void XdgSurfaceClient::handleRoleCommit()
 {
 }
 
-void XdgSurfaceClient::maybeUpdateMoveResizeGeometry(const QRect &rect)
-{
-    // We are about to send a configure event, ignore the committed window geometry.
-    if (m_configureTimer->isActive()) {
-        return;
-    }
-
-    // If there are unacknowledged configure events that change the geometry, don't sync
-    // the move resize geometry in order to avoid rolling back to old state. When the last
-    // configure event is acknowledged, the move resize geometry will be synchronized.
-    for (int i = m_configureEvents.count() - 1; i >= 0; --i) {
-        if (m_configureEvents[i]->flags & XdgSurfaceConfigure::ConfigurePosition) {
-            return;
-        }
-    }
-
-    setMoveResizeGeometry(rect);
-}
-
 void XdgSurfaceClient::handleNextWindowGeometry()
 {
     const QRect boundingGeometry = surface()->boundingRect();
@@ -236,10 +217,6 @@ void XdgSurfaceClient::handleNextWindowGeometry()
                 frameGeometry.moveTopLeft(configureEvent->position);
             }
         }
-
-        // Both the compositor and the client can change the window geometry. If the client
-        // sets a new window geometry, the compositor's move-resize geometry will be invalid.
-        maybeUpdateMoveResizeGeometry(frameGeometry);
     }
 
     updateGeometry(frameGeometry);
@@ -859,10 +836,20 @@ void XdgToplevelClient::closeWindow()
 
 XdgSurfaceConfigure *XdgToplevelClient::sendRoleConfigure() const
 {
-    QSize nextClientSize = moveResizeGeometry().size();
-    if (!nextClientSize.isEmpty()) {
+    QSize nextClientSize = explicitBoundsSize();
+
+    if (nextClientSize.width() == -1) {
+        nextClientSize.setWidth(0);
+    } else {
         if (m_nextDecoration) {
             nextClientSize.rwidth() -= m_nextDecoration->borderLeft() + m_nextDecoration->borderRight();
+        }
+    }
+
+    if (nextClientSize.height() == -1) {
+        nextClientSize.setHeight(0);
+    } else {
+        if (m_nextDecoration) {
             nextClientSize.rheight() -= m_nextDecoration->borderTop() + m_nextDecoration->borderBottom();
         }
     }
@@ -870,7 +857,7 @@ XdgSurfaceConfigure *XdgToplevelClient::sendRoleConfigure() const
     const quint32 serial = m_shellSurface->sendConfigure(nextClientSize, m_requestedStates);
 
     XdgToplevelConfigure *configureEvent = new XdgToplevelConfigure();
-    configureEvent->position = moveResizeGeometry().topLeft();
+    configureEvent->position = boundsPosition();
     configureEvent->states = m_requestedStates;
     configureEvent->decoration = m_nextDecoration;
     configureEvent->serial = serial;
@@ -1609,7 +1596,7 @@ void XdgToplevelClient::setFullScreen(bool set, bool user)
         } else {
             // this can happen when the window was first shown already fullscreen,
             // so let the client set the size by itself
-            moveResize(QRect(workspace()->clientArea(PlacementArea, this).topLeft(), QSize(0, 0)));
+            moveResize(QRect(workspace()->clientArea(PlacementArea, this).topLeft(), QSize()));
         }
     }
 
@@ -1724,7 +1711,7 @@ void XdgToplevelClient::changeMaximize(bool horizontal, bool vertical, bool adju
             // invalid. This would happen if the window had been mapped in the maximized state.
             // We ask the client to resize the window horizontally to its preferred size.
             geometry.setX(clientArea.x());
-            geometry.setWidth(0);
+            geometry.setWidth(-1);
         }
     }
 
@@ -1742,7 +1729,7 @@ void XdgToplevelClient::changeMaximize(bool horizontal, bool vertical, bool adju
             // invalid. This would happen if the window had been mapped in the maximized state.
             // We ask the client to resize the window vertically to its preferred size.
             geometry.setY(clientArea.y());
-            geometry.setHeight(0);
+            geometry.setHeight(-1);
         }
     }
 
@@ -2057,12 +2044,12 @@ bool XdgPopupClient::acceptsFocus() const
 XdgSurfaceConfigure *XdgPopupClient::sendRoleConfigure() const
 {
     const QPoint parentPosition = transientFor()->framePosToClientPos(transientFor()->pos());
-    const QPoint popupPosition = moveResizeGeometry().topLeft() - parentPosition;
+    const QPoint popupPosition = boundsPosition() - parentPosition;
 
-    const quint32 serial = m_shellSurface->sendConfigure(QRect(popupPosition, moveResizeGeometry().size()));
+    const quint32 serial = m_shellSurface->sendConfigure(QRect(popupPosition, explicitBoundsSize()));
 
     XdgSurfaceConfigure *configureEvent = new XdgSurfaceConfigure();
-    configureEvent->position = moveResizeGeometry().topLeft();
+    configureEvent->position = boundsPosition();
     configureEvent->serial = serial;
 
     return configureEvent;
