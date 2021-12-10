@@ -3251,7 +3251,7 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
 
     // operating on the maximized / quicktiled window would leave the old geom_restore behind,
     // so we clear the state first
-    MaximizeMode maxMode = maximizeMode();
+    MaximizeMode maxMode = requestedMaximizeMode();
     QuickTileMode qtMode = quickTileMode();
     if (maxMode != MaximizeRestore)
         maximize(MaximizeRestore);
