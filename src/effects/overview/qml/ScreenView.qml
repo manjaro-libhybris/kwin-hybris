@@ -53,6 +53,25 @@ FocusScope {
                 NumberAnimation { duration: effect.animationDuration; easing.type: Easing.OutCubic }
             }
         }
+
+        Repeater {
+            model: KWinComponents.ClientFilterModel {
+                desktop: KWinComponents.Workspace.currentVirtualDesktop
+                screenName: targetScreen.name
+                clientModel: stackModel
+                windowType: KWinComponents.ClientFilterModel.Dock
+            }
+
+            KWinComponents.WindowThumbnailItem {
+                id: windowThumbnail
+                visible: !model.client.hidden
+                wId: model.client.internalId
+                x: model.client.x - targetScreen.geometry.x
+                y: model.client.y - targetScreen.geometry.y
+                width: model.client.width
+                height: model.client.height
+            }
+        }
     }
 
     Rectangle {
@@ -162,29 +181,6 @@ FocusScope {
                 onActivated: {
                     effect.deactivate();
                 }
-            }
-        }
-    }
-
-    Repeater {
-        model: KWinComponents.ClientFilterModel {
-            desktop: KWinComponents.Workspace.currentVirtualDesktop
-            screenName: targetScreen.name
-            clientModel: stackModel
-            windowType: KWinComponents.ClientFilterModel.Dock
-        }
-
-        KWinComponents.WindowThumbnailItem {
-            id: windowThumbnail
-            visible: !model.client.hidden
-            wId: model.client.internalId
-            x: model.client.x - targetScreen.geometry.x
-            y: model.client.y - targetScreen.geometry.y
-            width: model.client.width
-            height: model.client.height
-
-            TapHandler {
-                onTapped: effect.deactivate();
             }
         }
     }
