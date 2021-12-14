@@ -3248,6 +3248,8 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
         return;
 
     GeometryUpdatesBlocker blocker(this);
+    qDebug() << "send to output" << newOutput << frameGeometry() << moveResizeGeometry();
+    qDebug() << "geometry restore" << geometryRestore();
 
     // operating on the maximized / quicktiled window would leave the old geom_restore behind,
     // so we clear the state first
@@ -3260,6 +3262,7 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
 
     QRect oldScreenArea = workspace()->clientArea(MaximizeArea, this);
     QRect screenArea = workspace()->clientArea(MaximizeArea, this, newOutput);
+    qDebug() << "screen area" << screenArea;
 
     // the window can have its center so that the position correction moves the new center onto
     // the old screen, what will tile it where it is. Ie. the screen is not changed
@@ -3277,6 +3280,7 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
     center += screenArea.center();
     newGeom.moveCenter(center);
     moveResize(newGeom);
+    qDebug() << "move to screen" << moveResizeGeometry();
 
     // If the window was inside the old screen area, explicitly make sure its inside also the new screen area.
     // Calling checkWorkspacePosition() should ensure that, but when moving to a small screen the window could
@@ -3298,13 +3302,19 @@ void AbstractClient::sendToOutput(AbstractOutput *newOutput)
         // re-align geom_restore to constrained geometry
         setGeometryRestore(moveResizeGeometry());
     }
+    qDebug() << "after check workspace position" << moveResizeGeometry();
     // finally reset special states
     // NOTICE that MaximizeRestore/QuickTileFlag::None checks are required.
     // eg. setting QuickTileFlag::None would break maximization
-    if (maxMode != MaximizeRestore)
+    if (maxMode != MaximizeRestore) {
+        qDebug() << "restore maximize";
         maximize(maxMode);
-    if (qtMode != QuickTileMode(QuickTileFlag::None) && qtMode != quickTileMode())
+    }
+    if (qtMode != QuickTileMode(QuickTileFlag::None) && qtMode != quickTileMode()) {
+        qDebug() << "restore quick tile";
         setQuickTileMode(qtMode, true);
+    }
+    qDebug() << "final geo" << moveResizeGeometry();
 
     auto tso = workspace()->ensureStackingOrder(transients());
     for (auto it = tso.constBegin(), end = tso.constEnd(); it != end; ++it)
@@ -3348,6 +3358,7 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
         oldClientGeometry = oldGeometry.adjusted(border[Left], border[Top], -border[Right], -border[Bottom]);
     if (isFullScreen()) {
         moveResize(workspace()->clientArea(FullScreenArea, this, fullscreenGeometryRestore().center()));
+        qDebug() << "check workspace position (fullscreen) -" << moveResizeGeometry();
         return;
     }
 
@@ -3357,11 +3368,13 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
         const QRect screenArea = workspace()->clientArea(ScreenArea, this, geom.center());
         checkOffscreenPosition(&geom, screenArea);
         moveResize(geom);
+        qDebug() << "check workspace position (maximize) -" << geom;
         return;
     }
 
     if (quickTileMode() != QuickTileMode(QuickTileFlag::None)) {
         moveResize(electricBorderMaximizeGeometry(moveResizeGeometry().center()));
+        qDebug() << "check workspace position (quick tile) -" << moveResizeGeometry();
         return;
     }
 
@@ -3543,6 +3556,7 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, QRect oldClientGe
             newGeom.setTop(newGeom.top() + border[Top]);
     }
 
+    qDebug() << "check workspace position (about to check offscreen)" << newGeom << screenArea;
     checkOffscreenPosition(&newGeom, screenArea);
     // Obey size hints. TODO: We really should make sure it stays in the right place
     if (!isShade())

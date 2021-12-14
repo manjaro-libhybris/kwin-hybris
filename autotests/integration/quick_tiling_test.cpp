@@ -161,6 +161,7 @@ void QuickTilingTest::testQuickTiling()
     QCOMPARE(workspace()->activeClient(), c);
     QCOMPARE(c->frameGeometry(), QRect(0, 0, 100, 50));
     QCOMPARE(c->quickTileMode(), QuickTileMode(QuickTileFlag::None));
+    qDebug() << "initial move resize geometry" << c->moveResizeGeometry();
 
     // We have to receive a configure event when the client becomes active.
     QSignalSpy toplevelConfigureRequestedSpy(shellSurface.data(), &Test::XdgToplevel::configureRequested);
