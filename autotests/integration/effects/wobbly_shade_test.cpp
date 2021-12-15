@@ -130,9 +130,9 @@ void WobblyWindowsShadeTest::testShadeMove()
     QVERIFY(!client->isShade());
     QVERIFY(client->isActive());
 
-    QSignalSpy windowShownSpy(client, &AbstractClient::windowShown);
-    QVERIFY(windowShownSpy.isValid());
-    QVERIFY(windowShownSpy.wait());
+    QMetaObject::invokeMethod(client, "setReadyForPainting");
+    QVERIFY(client->readyForPainting());
+    QVERIFY(Test::waitForWaylandSurface(client));
 
     // now shade the window
     workspace()->slotWindowShade();
