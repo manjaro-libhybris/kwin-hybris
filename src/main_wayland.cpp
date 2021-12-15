@@ -268,6 +268,9 @@ void ApplicationWayland::startSession()
 static const QString s_waylandPlugin = QStringLiteral("KWinWaylandWaylandBackend");
 static const QString s_x11Plugin = QStringLiteral("KWinWaylandX11Backend");
 static const QString s_drmPlugin = QStringLiteral("KWinWaylandDrmBackend");
+#if HAVE_LIBHYBRIS
+static const QString s_hwcomposerPlugin = QStringLiteral("KWinWaylandHwcomposerBackend");
+#endif
 static const QString s_virtualPlugin = QStringLiteral("KWinWaylandVirtualBackend");
 
 static QString automaticBackendSelection()
@@ -278,6 +281,11 @@ static QString automaticBackendSelection()
     if (qEnvironmentVariableIsSet("DISPLAY")) {
         return s_x11Plugin;
     }
+#if HAVE_LIBHYBRIS
+    if (qEnvironmentVariableIsSet("ANDROID_ROOT")) {
+        return s_hwcomposerPlugin;
+    }
+#endif
     return s_drmPlugin;
 }
 
@@ -350,6 +358,9 @@ int main(int argc, char *argv[])
     const bool hasVirtualOption = hasPlugin(KWin::s_virtualPlugin);
     const bool hasWaylandOption = hasPlugin(KWin::s_waylandPlugin);
     const bool hasDrmOption = hasPlugin(KWin::s_drmPlugin);
+#if HAVE_LIBHYBRIS
+    const bool hasHwcomposerOption = hasPlugin(KWin::s_hwcomposerPlugin);
+#endif
 
     QCommandLineOption xwaylandOption(QStringLiteral("xwayland"),
                                       i18n("Start a rootless Xwayland server."));
@@ -428,6 +439,12 @@ int main(int argc, char *argv[])
     if (hasOutputCountOption) {
         parser.addOption(outputCountOption);
     }
+#if HAVE_LIBHYBRIS
+    QCommandLineOption hwcomposerOption(QStringLiteral("hwcomposer"), i18n("Use libhybris hwcomposer"));
+    if (hasHwcomposerOption) {
+        parser.addOption(hwcomposerOption);
+    }
+#endif
     QCommandLineOption drmOption(QStringLiteral("drm"), i18n("Render through drm node."));
     if (hasDrmOption) {
         parser.addOption(drmOption);
@@ -545,6 +562,11 @@ int main(int argc, char *argv[])
         pluginName = KWin::s_waylandPlugin;
     }
 
+#if HAVE_LIBHYBRIS
+    if (hasHwcomposerOption && parser.isSet(hwcomposerOption)) {
+        pluginName = KWin::s_hwcomposerPlugin;
+    }
+#endif
     if (hasVirtualOption && parser.isSet(virtualFbOption)) {
         pluginName = KWin::s_virtualPlugin;
     }
