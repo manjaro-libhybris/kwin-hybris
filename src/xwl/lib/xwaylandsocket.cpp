@@ -115,15 +115,18 @@ static int listen_helper(const QString &filePath, UnixSocketAddress::Type type, 
     }
     int fileDescriptor = socket(AF_UNIX, socketFlags, 0);
     if (fileDescriptor == -1) {
+        qDebug() << "socket() failed" << filePath << strerror(errno);
         return -1;
     }
 
     if (bind(fileDescriptor, socketAddress.data(), socketAddress.size()) == -1) {
+        qDebug() << "bind() failed" << filePath << strerror(errno);
         close(fileDescriptor);
         return -1;
     }
 
     if (listen(fileDescriptor, 1) == -1) {
+        qDebug() << "listen() failed" << filePath << strerror(errno);
         close(fileDescriptor);
         return -1;
     }
@@ -165,6 +168,7 @@ static bool checkSocketsDirectory()
 XwaylandSocket::XwaylandSocket(OperationMode mode)
 {
     if (!checkSocketsDirectory()) {
+        qDebug() << "xxxxxxxxxxxxxxxxxxx";
         return;
     }
 
@@ -173,17 +177,20 @@ XwaylandSocket::XwaylandSocket(OperationMode mode)
         const QString lockFilePath = lockFileNameForDisplay(display);
 
         if (!tryLockFile(lockFilePath)) {
+            qDebug() << socketFilePath << "is already taken";
             continue;
         }
 
         const int unixFileDescriptor = listen_helper(socketFilePath, UnixSocketAddress::Type::Unix, mode);
         if (unixFileDescriptor == -1) {
+            qDebug() << "failed to get unix socket descriptor" << socketFilePath;
             QFile::remove(lockFilePath);
             continue;
         }
 
         const int abstractFileDescriptor = listen_helper(socketFilePath, UnixSocketAddress::Type::Abstract, mode);
         if (abstractFileDescriptor == -1) {
+            qDebug() << "failed to get abstract socket descriptor" << socketFilePath;
             QFile::remove(lockFilePath);
             QFile::remove(socketFilePath);
             close(unixFileDescriptor);
