@@ -207,8 +207,12 @@ void SlidingPopupsTest::testWithOtherEffect()
     QCOMPARE(client->window(), w);
     QVERIFY(client->isNormalWindow());
 
+    QMetaObject::invokeMethod(client, "setReadyForPainting");
+    QVERIFY(client->readyForPainting());
+    QVERIFY(Test::waitForWaylandSurface(client));
+
     // sliding popups should be active
-    QVERIFY(windowAddedSpy.wait());
+    QCOMPARE(windowAddedSpy.count(), 1);
     QTRY_VERIFY(slidingPoupus->isActive());
     QVERIFY(!otherEffect->isActive());
 
