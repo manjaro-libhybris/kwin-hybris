@@ -3089,7 +3089,16 @@ void AbstractClient::setQuickTileMode(QuickTileMode mode, bool keyboard)
         if (maximizeMode() == MaximizeFull) {
             setMaximize(false, false);
         } else {
-            QRect prev_geom_restore = geometryRestore(); // setMaximize() would set moveResizeGeom as geom_restore
+            // setMaximize() won't update geometryRestore(). If the window is
+            // already tiled, the geometryRestore() will have a valid value.
+            QRect savedGeometry = geometryRestore();
+            if (m_quickTileMode == QuickTileMode(QuickTileFlag::None)) {
+                if (isElectricBorderMaximizing()) {
+                    savedGeometry = initialInteractiveMoveResizeGeometry();
+                } else {
+                    savedGeometry = moveResizeGeometry();
+                }
+            }
             m_quickTileMode = int(QuickTileFlag::Maximize);
             setMaximize(true, true);
             QRect clientArea = workspace()->clientArea(MaximizeArea, this);
@@ -3098,7 +3107,7 @@ void AbstractClient::setQuickTileMode(QuickTileMode mode, bool keyboard)
                 r.moveTop(clientArea.top());
                 moveResize(r);
             }
-            setGeometryRestore(prev_geom_restore);
+            setGeometryRestore(savedGeometry);
         }
         doSetQuickTileMode();
         Q_EMIT quickTileModeChanged();
