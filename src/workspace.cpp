@@ -1194,6 +1194,11 @@ void Workspace::slotOutputEnabled(AbstractOutput *output)
 
     connect(output, &AbstractOutput::geometryChanged, this, &Workspace::desktopResized);
     desktopResized();
+
+    // Trigger a re-check of output-related rules on all clients
+    for (AbstractClient *client : qAsConst(m_allClients)) {
+        sendClientToOutput(client, client->output());
+    }
 }
 
 void Workspace::slotOutputDisabled(AbstractOutput *output)
