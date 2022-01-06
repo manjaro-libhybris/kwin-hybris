@@ -194,7 +194,7 @@ xkb_keymap *Xkb::loadKeymapFromConfig()
         .options = nullptr,
     };
 
-    if (m_configGroup.readEntry("ResetOldOptions", false)) {
+    if (m_configGroup.readEntry("OptionsEnabled", false)) {
         ruleNames.options = options.constData();
     }
 
