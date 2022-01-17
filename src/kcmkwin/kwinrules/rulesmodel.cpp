@@ -764,7 +764,9 @@ QList<OptionsModel::Data> RulesModel::activitiesModelData() const
     modelData << OptionsModel::Data{
         Activities::nullUuid(),
         i18n("All Activities"),
-        QIcon::fromTheme("activities")
+        QIcon::fromTheme("activities"),
+        i18nc("@info:tooltip in the activity list", "Make the window available on all activities"),
+        OptionsModel::GlobalType,
     };
 
     const auto activities = m_activities->activities(KActivities::Info::Running);
