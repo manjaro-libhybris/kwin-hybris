@@ -18,6 +18,8 @@
 #include <QSharedPointer>
 #include <QSize>
 #include <QSocketNotifier>
+#include <chrono>
+#include <optional>
 
 #include <pipewire/pipewire.h>
 #include <spa/param/format-utils.h>
@@ -50,8 +52,11 @@ public:
 
     void stop();
 
-    /** Renders @p frame into the current framebuffer into the stream */
-    void recordFrame(const QRegion &damagedRegion);
+    /**
+     * Renders @p frame into the current framebuffer into the stream
+     * @p timestamp
+     */
+    void recordFrame(std::chrono::nanoseconds timestamp, const QRegion &damagedRegion);
 
     void setCursorMode(KWaylandServer::ScreencastV1Interface::CursorMode mode, qreal scale, const QRect &viewport);
 
@@ -110,6 +115,8 @@ private:
     pw_buffer *m_pendingBuffer = nullptr;
     QSocketNotifier *m_pendingNotifier = nullptr;
     EGLNativeFence *m_pendingFence = nullptr;
+    std::optional<std::chrono::nanoseconds> m_start;
+    quint64 m_sequential = 0;
 };
 
 } // namespace KWin

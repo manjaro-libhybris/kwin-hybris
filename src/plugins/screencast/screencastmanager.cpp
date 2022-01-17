@@ -73,7 +73,7 @@ private:
 
     void bufferToStream () {
         if (!m_damagedRegion.isEmpty()) {
-            recordFrame(m_damagedRegion);
+            recordFrame(m_toplevel->output()->renderLoop()->lastPresentationTimestamp(), m_damagedRegion);
             m_damagedRegion = {};
         }
     }
@@ -134,7 +134,7 @@ void ScreencastManager::streamOutput(KWaylandServer::ScreencastStreamV1Interface
 
         const QRect frame({}, streamOutput->modeSize());
         const QRegion region = streamOutput->pixelSize() != streamOutput->modeSize() ? frame : damagedRegion.translated(-streamOutput->geometry().topLeft()).intersected(frame);
-        stream->recordFrame(region);
+        stream->recordFrame(streamOutput->renderLoop()->lastPresentationTimestamp(), region);
     };
     connect(stream, &ScreenCastStream::startStreaming, waylandStream, [streamOutput, stream, bufferToStream] {
         Compositor::self()->scene()->addRepaint(streamOutput->geometry());
