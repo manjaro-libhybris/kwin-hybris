@@ -20,6 +20,7 @@ QHash<int, QByteArray> OptionsModel::roleNames() const
         {Qt::ToolTipRole,    QByteArrayLiteral("tooltip")},
         {ValueRole,       QByteArrayLiteral("value")},
         {IconNameRole,   QByteArrayLiteral("iconName")},
+        {OptionTypeRole,   QByteArrayLiteral("optionType")},
     };
 }
 
@@ -50,6 +51,8 @@ QVariant OptionsModel::data(const QModelIndex &index, int role) const
             return data.icon.name();
         case Qt::ToolTipRole:
             return data.description;
+        case OptionTypeRole:
+            return data.optionType;
     }
     return QVariant();
 }
