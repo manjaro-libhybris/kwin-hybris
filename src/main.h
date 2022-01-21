@@ -177,6 +177,14 @@ public:
         return m_defaultScreen;
     }
 
+    qreal x11Scale() const {
+        return m_x11Scale;
+    }
+
+    void setX11Scale(qreal scale) {
+        m_x11Scale = scale;
+    }
+
     /**
      * Returns @c true if we're in the middle of destroying the X11 connection.
      */
@@ -279,6 +287,7 @@ private:
     KSharedConfigPtr m_config;
     KSharedConfigPtr m_kxkbConfig;
     OperationMode m_operationMode;
+    qreal m_x11Scale = 1;
     xcb_timestamp_t m_x11Time = XCB_TIME_CURRENT_TIME;
     xcb_window_t m_rootWindow = XCB_WINDOW_NONE;
     xcb_connection_t *m_connection = nullptr;
