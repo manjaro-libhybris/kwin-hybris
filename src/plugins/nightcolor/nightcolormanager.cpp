@@ -481,6 +481,28 @@ void NightColorManager::slowUpdate(int targetTemp)
     }
 }
 
+void NightColorManager::preview(uint previewTemp)
+{
+    m_previewing = true;
+    commitGammaRamps((int)previewTemp);
+    if (m_previewTimer) {
+        delete m_previewTimer;
+        m_previewTimer = nullptr;
+    }
+    m_previewTimer = new QTimer(this);
+    m_previewTimer->setSingleShot(true);
+    connect(m_previewTimer, &QTimer::timeout, this, &NightColorManager::stopPreview);
+    m_previewTimer->start(15000);
+}
+
+void NightColorManager::stopPreview()
+{
+    if (m_previewing) {
+        commitGammaRamps(currentTargetTemp());
+        m_previewing = false;
+    }
+}
+
 void NightColorManager::updateTargetTemperature()
 {
     const int targetTemperature = mode() != NightColorMode::Constant && daylight() ? m_dayTargetTemp : m_nightTargetTemp;
