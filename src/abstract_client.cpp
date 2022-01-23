@@ -1493,6 +1493,7 @@ void AbstractClient::setupWindowManagementInterface()
     w->setApplicationMenuPaths(applicationMenuServiceName(), applicationMenuObjectPath());
     w->setIcon(icon());
     auto updateAppId = [this, w] {
+        w->setResourceName(resourceName());
         w->setAppId(QString::fromUtf8(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName));
     };
     updateAppId();
