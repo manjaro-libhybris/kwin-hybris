@@ -192,7 +192,7 @@ public:
 
 public Q_SLOTS:
     void resetSlowUpdateStartTimer();
-    void quickAdjust();
+    void quickAdjust(int targetTemp);
 
 Q_SIGNALS:
     /**
@@ -245,7 +245,7 @@ private:
     /**
      * Quick shift on manual change to current target Temperature
      */
-    void resetQuickAdjustTimer();
+    void resetQuickAdjustTimer(int targetTemp);
     /**
      * Slow shift to daytime target Temperature
      */
