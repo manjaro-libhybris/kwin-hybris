@@ -25,6 +25,10 @@ set_target_properties(kwin PROPERTIES
    SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
+set_source_files_properties(3rdparty/xcursor.c PROPERTIES
+    COMPILE_DEFINITIONS ICONDIR="${KDE_INSTALL_FULL_ICONDIR}"
+)
+
 target_sources(kwin PRIVATE
     3rdparty/xcursor.c
     abstract_client.cpp
