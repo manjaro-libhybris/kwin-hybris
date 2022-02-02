@@ -2060,8 +2060,8 @@ void Workspace::desktopResized()
 
     if (rootInfo()) {
         NETSize desktop_geometry;
-        desktop_geometry.width = m_geometry.width();
-        desktop_geometry.height = m_geometry.height();
+        desktop_geometry.width = Xcb::scale(m_geometry.width());
+        desktop_geometry.height = Xcb::scale(m_geometry.height());
         rootInfo()->setDesktopGeometry(desktop_geometry);
     }
 
@@ -2247,13 +2247,9 @@ void Workspace::updateClientArea()
         m_restrictedAreas = restrictedAreas;
 
         if (rootInfo()) {
-            NETRect r;
             for (VirtualDesktop *desktop : desktops) {
                 const QRect &workArea = m_workAreas[desktop];
-                r.pos.x = workArea.x();
-                r.pos.y = workArea.y();
-                r.size.width = workArea.width();
-                r.size.height = workArea.height();
+                NETRect r(Xcb::scale(workArea));
                 rootInfo()->setWorkArea(desktop->x11DesktopNumber(), r);
             }
         }
@@ -2490,7 +2486,6 @@ QPoint Workspace::adjustClientPosition(AbstractClient* c, QPoint pos, bool unres
         const int snapX = borderSnapZone.width() * snapAdjust; //snap trigger
         const int snapY = borderSnapZone.height() * snapAdjust;
         if (snapX || snapY) {
-            QRect geo = c->frameGeometry();
             if ((sOWO ? (cx < xmin) : true) && (qAbs(xmin - cx) < snapX)) {
                 deltaX = xmin - cx;
                 nx = xmin;
@@ -2873,7 +2868,7 @@ void Workspace::fixPositionAfterCrash(xcb_window_t w, const xcb_get_geometry_rep
         // left and top needed due to narrowing conversations restrictions in C++11
         const uint32_t left = frame.left;
         const uint32_t top = frame.top;
-        const uint32_t values[] = { geometry->x - left, geometry->y - top };
+        const uint32_t values[] = {Xcb::scale(geometry->x - left), Xcb::scale(geometry->y - top)};
         xcb_configure_window(connection(), w, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
     }
 }

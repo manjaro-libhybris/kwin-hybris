@@ -124,6 +124,7 @@ private:
     bool startInternal();
     void stopInternal();
     void restartInternal();
+    void refreshScaling();
 
     bool createX11Connection();
     void destroyX11Connection();
