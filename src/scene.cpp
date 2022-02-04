@@ -56,6 +56,7 @@
 #include "abstract_output.h"
 #include "internal_client.h"
 #include "platform.h"
+#include "renderlayer.h"
 #include "shadowitem.h"
 #include "surfaceitem.h"
 #include "unmanaged.h"
@@ -81,6 +82,46 @@
 namespace KWin
 {
 
+SceneDelegate::SceneDelegate(Scene *scene, QObject *parent)
+    : RenderLayerDelegate(parent)
+    , m_scene(scene)
+{
+    m_scene->addDelegate(this);
+}
+
+SceneDelegate::SceneDelegate(Scene *scene, AbstractOutput *output, QObject *parent)
+    : RenderLayerDelegate(parent)
+    , m_scene(scene)
+    , m_output(output)
+{
+    m_scene->addDelegate(this);
+}
+
+SceneDelegate::~SceneDelegate()
+{
+    m_scene->removeDelegate(this);
+}
+
+SurfaceItem *SceneDelegate::scanoutCandidate() const
+{
+    return m_scene->scanoutCandidate();
+}
+
+void SceneDelegate::prePaint()
+{
+    m_scene->prePaint(m_output);
+}
+
+void SceneDelegate::postPaint()
+{
+    m_scene->postPaint();
+}
+
+void SceneDelegate::paint(const QRegion &damage, const QRegion &repaint, QRegion &update, QRegion &valid)
+{
+    m_scene->paint(damage, repaint, update, valid);
+}
+
 //****************************************
 // Scene
 //****************************************
@@ -97,8 +138,6 @@ Scene::~Scene()
 
 void Scene::initialize()
 {
-    connect(kwinApp()->platform(), &Platform::outputDisabled, this, &Scene::removeRepaints);
-
     connect(workspace(), &Workspace::deletedRemoved, this, &Scene::removeToplevel);
 
     connect(workspace(), &Workspace::currentActivityChanged, this, &Scene::addRepaintFull);
@@ -145,18 +184,11 @@ void Scene::addRepaint(const QRect &rect)
 
 void Scene::addRepaint(const QRegion &region)
 {
-    if (kwinApp()->platform()->isPerScreenRenderingEnabled()) {
-        const QVector<AbstractOutput *> outputs = kwinApp()->platform()->enabledOutputs();
-        for (const auto &output : outputs) {
-            const QRegion dirtyRegion = region & output->geometry();
-            if (!dirtyRegion.isEmpty()) {
-                m_repaints[output] += dirtyRegion;
-                output->renderLoop()->scheduleRepaint();
-            }
+    for (const auto &delegate : std::as_const(m_delegates)) {
+        const QRegion dirtyRegion = region & delegate->layer()->geometry();
+        if (!dirtyRegion.isEmpty()) {
+            delegate->layer()->addRepaint(delegate->layer()->mapFromGlobal(dirtyRegion));
         }
-    } else {
-        m_repaints[0] += region;
-        kwinApp()->platform()->renderLoop()->scheduleRepaint();
     }
 }
 
@@ -173,19 +205,19 @@ void Scene::setGeometry(const QRect &rect)
     }
 }
 
-QRegion Scene::repaints(AbstractOutput *output) const
+QList<SceneDelegate *> Scene::delegates() const
 {
-    return m_repaints.value(output, infiniteRegion());
+    return m_delegates;
 }
 
-void Scene::resetRepaints(AbstractOutput *output)
+void Scene::addDelegate(SceneDelegate *delegate)
 {
-    m_repaints.insert(output, QRegion());
+    m_delegates.append(delegate);
 }
 
-void Scene::removeRepaints(AbstractOutput *output)
+void Scene::removeDelegate(SceneDelegate *delegate)
 {
-    m_repaints.remove(output);
+    m_delegates.removeOne(delegate);
 }
 
 static SurfaceItem *findTopMostSurface(SurfaceItem *item)
