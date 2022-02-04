@@ -103,11 +103,6 @@ EglGbmBackend *EglMultiBackend::findBackend(AbstractOutput *output) const
     return m_backends[0];
 }
 
-bool EglMultiBackend::directScanoutAllowed(AbstractOutput *output) const
-{
-    return findBackend(output)->directScanoutAllowed(output);
-}
-
 void EglMultiBackend::addGpu(DrmGpu *gpu)
 {
     EglGbmBackend *backend= new EglGbmBackend(m_platform, gpu);

@@ -809,11 +809,6 @@ QSharedPointer<GLTexture> EglGbmBackend::textureForOutput(AbstractOutput *output
     return QSharedPointer<EGLImageTexture>::create(eglDisplay(), image, GL_RGBA8, static_cast<DrmAbstractOutput*>(output)->modeSize());
 }
 
-bool EglGbmBackend::directScanoutAllowed(AbstractOutput *output) const
-{
-    return !output->usesSoftwareCursor() && !output->directScanoutInhibited();
-}
-
 bool EglGbmBackend::hasOutput(AbstractOutput *output) const
 {
     return m_outputs.contains(output);

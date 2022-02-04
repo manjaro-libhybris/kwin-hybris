@@ -74,8 +74,6 @@ public:
     bool exportFramebuffer(DrmAbstractOutput *output, void *data, const QSize &size, uint32_t stride);
     bool exportFramebufferAsDmabuf(DrmAbstractOutput *output, int *fds, int *strides, int *offsets, uint32_t *num_fds, uint32_t *format, uint64_t *modifier);
 
-    bool directScanoutAllowed(AbstractOutput *output) const override;
-
     QSharedPointer<DrmBuffer> renderTestFrame(DrmAbstractOutput *output);
     uint32_t drmFormat(DrmAbstractOutput *output) const;
     DrmGpu *gpu() const;

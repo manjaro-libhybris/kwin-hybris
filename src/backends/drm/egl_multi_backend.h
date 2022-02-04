@@ -39,8 +39,6 @@ public:
     SurfaceTexture *createSurfaceTextureWayland(SurfacePixmapWayland *pixmap) override;
     QSharedPointer<GLTexture> textureForOutput(AbstractOutput *requestedOutput) const override;
 
-    bool directScanoutAllowed(AbstractOutput *output) const override;
-
 public Q_SLOTS:
     void addGpu(DrmGpu *gpu);
     void removeGpu(DrmGpu *gpu);

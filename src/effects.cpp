@@ -1771,7 +1771,7 @@ void EffectsHandlerImpl::slotOutputDisabled(AbstractOutput *output)
 void EffectsHandlerImpl::renderScreen(EffectScreen *screen)
 {
     auto output = static_cast<EffectScreenImpl *>(screen)->platformOutput();
-    scene()->paintScreen(output, Compositor::self()->windowsToRender());
+    scene()->paintScreen(output);
 }
 
 bool EffectsHandlerImpl::isCursorHidden() const
