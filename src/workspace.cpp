@@ -1369,7 +1369,7 @@ void Workspace::focusToNull()
     }
 }
 
-void Workspace::setShowingDesktop(bool showing)
+void Workspace::setShowingDesktop(bool showing, bool animated)
 {
     const bool changed = showing != showing_desktop;
     if (rootInfo() && changed) {
@@ -1411,7 +1411,7 @@ void Workspace::setShowingDesktop(bool showing)
         }
     }
     if (changed)
-        Q_EMIT showingDesktopChanged(showing);
+        Q_EMIT showingDesktopChanged(showing, animated);
 }
 
 void Workspace::disableGlobalShortcutsForClient(bool disable)
