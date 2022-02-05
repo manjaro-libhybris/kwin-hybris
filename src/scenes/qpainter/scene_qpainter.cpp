@@ -80,7 +80,6 @@ void SceneQPainter::paint(const QRegion &damage, const QRegion &repaint, QRegion
 
         QRegion updateRegion, validRegion;
         paintScreen(damage.intersected(geometry), repaint, &update, &valid);
-        paintCursor(painted_screen, updateRegion);
         m_painter->end();
     }
 }
@@ -90,24 +89,6 @@ void SceneQPainter::paintBackground(const QRegion &region)
     for (const QRect &rect : region) {
         m_painter->fillRect(rect, Qt::black);
     }
-}
-
-void SceneQPainter::paintCursor(AbstractOutput *output, const QRegion &rendered)
-{
-    if (!output || !output->usesSoftwareCursor() || Cursors::self()->isCursorHidden()) {
-        return;
-    }
-
-    Cursor* cursor = Cursors::self()->currentCursor();
-    const QImage img = cursor->image();
-    if (img.isNull()) {
-        return;
-    }
-
-    m_painter->save();
-    m_painter->setClipRegion(rendered.intersected(cursor->geometry()));
-    m_painter->drawImage(cursor->geometry(), img);
-    m_painter->restore();
 }
 
 void SceneQPainter::paintOffscreenQuickView(OffscreenQuickView *w)
