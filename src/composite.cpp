@@ -351,18 +351,17 @@ void Compositor::startupWithWorkspace()
     Q_ASSERT(m_scene);
     m_scene->initialize();
 
-    const Platform *platform = kwinApp()->platform();
-    if (platform->isPerScreenRenderingEnabled()) {
-        const QVector<AbstractOutput *> outputs = platform->enabledOutputs();
+    const QVector<AbstractOutput *> outputs = kwinApp()->platform()->enabledOutputs();
+    if (kwinApp()->platform()->isPerScreenRenderingEnabled()) {
         for (AbstractOutput *output : outputs) {
             registerRenderLoop(output->renderLoop(), output);
         }
-        connect(platform, &Platform::outputEnabled,
+        connect(kwinApp()->platform(), &Platform::outputEnabled,
                 this, &Compositor::handleOutputEnabled);
-        connect(platform, &Platform::outputDisabled,
+        connect(kwinApp()->platform(), &Platform::outputDisabled,
                 this, &Compositor::handleOutputDisabled);
     } else {
-        registerRenderLoop(platform->renderLoop(), nullptr);
+        registerRenderLoop(outputs.constFirst()->renderLoop(), nullptr);
     }
 
     m_state = State::On;
@@ -591,7 +590,7 @@ void Compositor::composite(RenderLoop *renderLoop)
     }
 
     const auto &output = m_renderLoops[renderLoop];
-    fTraceDuration("Paint (", output ? output->name() : QStringLiteral("screens"), ")");
+    fTraceDuration("Paint (", output->name(), ")");
 
     const QRegion damage = m_scene->repaints(output);
     m_scene->resetRepaints(output);

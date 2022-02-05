@@ -346,10 +346,7 @@ void Scene::paintScreen(const QRegion &damage, const QRegion &repaint,
 {
     const QRegion displayRegion(geometry());
 
-    RenderLoop *renderLoop = painted_screen->renderLoop();
-    if (!renderLoop) {
-        renderLoop = kwinApp()->platform()->renderLoop();
-    }
+    const RenderLoop *renderLoop = painted_screen->renderLoop();
     const std::chrono::milliseconds presentTime =
             std::chrono::duration_cast<std::chrono::milliseconds>(renderLoop->nextPresentationTimestamp());
 
@@ -368,7 +365,7 @@ void Scene::paintScreen(const QRegion &damage, const QRegion &repaint,
 
     QRegion region = damage;
 
-    auto screen = painted_screen ? EffectScreenImpl::get(painted_screen) : nullptr;
+    auto screen = EffectScreenImpl::get(painted_screen);
     ScreenPrePaintData pdata;
     pdata.mask = (damage == displayRegion) ? 0 : PAINT_SCREEN_REGION;
     pdata.paint = region;
