@@ -26,17 +26,15 @@ public:
 
     bool isComplete() const;
 
-    void bind();
     void render(DrmAbstractOutput *output);
 
-    int texture() const;
-
-    QSize textureSize() const;
+    GLRenderTarget *renderTarget() const;
+    QSharedPointer<GLTexture> texture() const;
 
 private:
     GLint internalFormat(const GbmFormat &format);
-    GLuint m_texture;
-    GLuint m_framebuffer;
+    QSharedPointer<GLTexture> m_texture;
+    QScopedPointer<GLRenderTarget> m_renderTarget;
     QScopedPointer<GLVertexBuffer> m_vbo;
     QSize m_size;
 };
