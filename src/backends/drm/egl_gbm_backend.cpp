@@ -194,6 +194,7 @@ bool EglGbmBackend::resetOutput(Output &output)
     output.current = {};
     output.current.format = gbmFormat.value();
     output.current.gbmSurface = gbmSurface;
+    output.current.renderTarget.reset(new GLRenderTarget(0, size));
 
     if (!output.output->needsSoftwareTransformation())  {
         output.current.shadowBuffer = nullptr;
@@ -355,12 +356,10 @@ QSharedPointer<DrmBuffer> EglGbmBackend::importFramebuffer(Output &output, const
 
 void EglGbmBackend::renderFramebufferToSurface(Output &output)
 {
-    if (!output.current.shadowBuffer) {
-        // No additional render target.
-        return;
+    if (output.current.shadowBuffer) {
+        GLRenderTarget::popRenderTarget(); // pop shadow buffer's render target
+        output.current.shadowBuffer->render(output.output);
     }
-    makeContextCurrent(output.current);
-    output.current.shadowBuffer->render(output.output);
 }
 
 bool EglGbmBackend::makeContextCurrent(const Output::RenderData &render) const
@@ -514,12 +513,6 @@ SurfaceTexture *EglGbmBackend::createSurfaceTextureWayland(SurfacePixmapWayland 
     return new BasicEGLSurfaceTextureWayland(this, pixmap);
 }
 
-void EglGbmBackend::setViewport(const Output &output) const
-{
-    const QSize size = output.output->sourceSize();
-    glViewport(0, 0, size.width(), size.height());
-}
-
 QRegion EglGbmBackend::beginFrame(AbstractOutput *drmOutput)
 {
     Q_ASSERT(m_outputs.contains(drmOutput));
@@ -560,7 +553,7 @@ bool EglGbmBackend::doesRenderFit(const Output &output, const Output::RenderData
     }
     bool needsTexture = output.output->needsSoftwareTransformation();
     if (needsTexture) {
-        return render.shadowBuffer && render.shadowBuffer->textureSize() == output.output->sourceSize();
+        return render.shadowBuffer && render.shadowBuffer->texture()->size() == output.output->sourceSize();
     } else {
         return render.shadowBuffer == nullptr;
     }
@@ -579,10 +572,11 @@ QRegion EglGbmBackend::prepareRenderingForOutput(Output &output)
         }
     }
     makeContextCurrent(output.current);
+
+    GLRenderTarget::pushRenderTarget(output.current.renderTarget.data());
     if (output.current.shadowBuffer) {
-        output.current.shadowBuffer->bind();
+        GLRenderTarget::pushRenderTarget(output.current.shadowBuffer->renderTarget());
     }
-    setViewport(output);
 
     const QRect geometry = output.output->geometry();
     if (supportsBufferAge()) {
@@ -599,6 +593,8 @@ QSharedPointer<DrmBuffer> EglGbmBackend::endFrameWithBuffer(AbstractOutput *drmO
     Output &output = m_outputs[drmOutput];
     if (isPrimary()) {
         renderFramebufferToSurface(output);
+        GLRenderTarget::popRenderTarget(); // pop the default render target
+
         auto buffer = output.current.gbmSurface->swapBuffersForDrm();
         if (buffer) {
             updateBufferAge(output, dirty);
@@ -797,9 +793,7 @@ QSharedPointer<GLTexture> EglGbmBackend::textureForOutput(AbstractOutput *output
     Q_ASSERT(m_outputs.contains(output));
     auto &renderOutput = m_outputs[output];
     if (renderOutput.current.shadowBuffer) {
-        const auto glTexture = QSharedPointer<KWin::GLTexture>::create(renderOutput.current.shadowBuffer->texture(), GL_RGBA8, renderOutput.output->sourceSize());
-        glTexture->setYInverted(true);
-        return glTexture;
+        return renderOutput.current.shadowBuffer->texture();
     }
     GbmBuffer *gbmBuffer = renderOutput.current.gbmSurface->currentBuffer().get();
     if (!gbmBuffer) {

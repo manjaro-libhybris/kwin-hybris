@@ -99,6 +99,7 @@ private:
         struct RenderData {
             QSharedPointer<ShadowBuffer> shadowBuffer;
             QSharedPointer<GbmSurface> gbmSurface;
+            QSharedPointer<GLRenderTarget> renderTarget;
             int bufferAge = 0;
             DamageJournal damageJournal;
             GbmFormat format;
@@ -122,7 +123,6 @@ private:
     void removeOutput(DrmAbstractOutput *output);
 
     bool makeContextCurrent(const Output::RenderData &output) const;
-    void setViewport(const Output &output) const;
 
     void renderFramebufferToSurface(Output &output);
     QRegion prepareRenderingForOutput(Output &output);
